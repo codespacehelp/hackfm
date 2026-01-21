@@ -8,15 +8,9 @@ Pirate Radio is a simple macOS app that lets you pick an audio file (WAV, MP3, A
 
 ## Requirements (macOS)
 
-You’ll need a HackRF One device and the HackRF tools installed.
+You’ll need a HackRF One device. The app bundles `libhackrf` for both Intel and Apple Silicon, so end users do not need Homebrew.
 
-Install [Homebrew](https://brew.sh/) if you haven’t already.
-
-Then install the HackRF tools:
-
-```
-brew install hackrf
-```
+If you need to rebuild the bundled library, see `third_party/hackrf/README.md` and run `scripts/build_hackrf_universal.sh`.
 
 ## Building
 
