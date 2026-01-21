@@ -27,6 +27,7 @@
 		A1000020001 /* AudioSourceSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* AudioSourceSelectionView.swift */; };
 		A1000021001 /* AudioInputDevicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* AudioInputDevicePickerView.swift */; };
 		A1000022001 /* AudioLevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* AudioLevelMeterView.swift */; };
+		A1000040001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000040000 /* Assets.xcassets */; };
 		A1000030001 /* libhackrf.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = A1000030000 /* libhackrf.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A1000031001 /* libusb-1.0.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = A1000031000 /* libusb-1.0.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A1000032001 /* libfftw3f.3.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = A1000032000 /* libfftw3f.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -57,6 +58,7 @@
 		A1000020000 /* AudioSourceSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSourceSelectionView.swift; sourceTree = "<group>"; };
 		A1000021000 /* AudioInputDevicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputDevicePickerView.swift; sourceTree = "<group>"; };
 		A1000022000 /* AudioLevelMeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelMeterView.swift; sourceTree = "<group>"; };
+		A1000040000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000030000 /* libhackrf.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = lib/libhackrf.dylib; sourceTree = "<group>"; };
 		A1000031000 /* libusb-1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = lib/libusb-1.0.0.dylib; sourceTree = "<group>"; };
 		A1000032000 /* libfftw3f.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = lib/libfftw3f.3.dylib; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				A1GRP000005 /* Services */,
 				A1GRP000006 /* Models */,
 				A1GRP000007 /* Supporting */,
+				A1000040000 /* Assets.xcassets */,
 			);
 			path = PirateRadio;
 			sourceTree = "<group>";
@@ -264,6 +267,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1000040001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
