@@ -18,6 +18,15 @@
 		A1000009001 /* FMModulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000009000 /* FMModulator.swift */; };
 		A1000010001 /* HackRFWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010000 /* HackRFWrapper.swift */; };
 		A1000011001 /* HackRFError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000011000 /* HackRFError.swift */; };
+		A1000014001 /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014000 /* RingBuffer.swift */; };
+		A1000015001 /* AudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000015000 /* AudioSource.swift */; };
+		A1000016001 /* FileAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016000 /* FileAudioSource.swift */; };
+		A1000017001 /* StreamingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000017000 /* StreamingPipeline.swift */; };
+		A1000018001 /* AudioInputDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018000 /* AudioInputDevice.swift */; };
+		A1000019001 /* LiveAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019000 /* LiveAudioSource.swift */; };
+		A1000020001 /* AudioSourceSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* AudioSourceSelectionView.swift */; };
+		A1000021001 /* AudioInputDevicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* AudioInputDevicePickerView.swift */; };
+		A1000022001 /* AudioLevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* AudioLevelMeterView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +44,15 @@
 		A1000011000 /* HackRFError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HackRFError.swift; sourceTree = "<group>"; };
 		A1000012000 /* PirateRadio-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PirateRadio-Bridging-Header.h"; sourceTree = "<group>"; };
 		A1000013000 /* PirateRadio.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PirateRadio.entitlements; sourceTree = "<group>"; };
+		A1000014000 /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
+		A1000015000 /* AudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSource.swift; sourceTree = "<group>"; };
+		A1000016000 /* FileAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAudioSource.swift; sourceTree = "<group>"; };
+		A1000017000 /* StreamingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingPipeline.swift; sourceTree = "<group>"; };
+		A1000018000 /* AudioInputDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputDevice.swift; sourceTree = "<group>"; };
+		A1000019000 /* LiveAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAudioSource.swift; sourceTree = "<group>"; };
+		A1000020000 /* AudioSourceSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSourceSelectionView.swift; sourceTree = "<group>"; };
+		A1000021000 /* AudioInputDevicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputDevicePickerView.swift; sourceTree = "<group>"; };
+		A1000022000 /* AudioLevelMeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelMeterView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +103,9 @@
 				A1000004000 /* FrequencyControlView.swift */,
 				A1000005000 /* TransmissionControlView.swift */,
 				A1000006000 /* ProgressDisplayView.swift */,
+				A1000020000 /* AudioSourceSelectionView.swift */,
+				A1000021000 /* AudioInputDevicePickerView.swift */,
+				A1000022000 /* AudioLevelMeterView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -103,6 +124,12 @@
 				A1000008000 /* AudioProcessor.swift */,
 				A1000009000 /* FMModulator.swift */,
 				A1000010000 /* HackRFWrapper.swift */,
+				A1000014000 /* RingBuffer.swift */,
+				A1000015000 /* AudioSource.swift */,
+				A1000016000 /* FileAudioSource.swift */,
+				A1000017000 /* StreamingPipeline.swift */,
+				A1000018000 /* AudioInputDevice.swift */,
+				A1000019000 /* LiveAudioSource.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -211,6 +238,15 @@
 				A1000009001 /* FMModulator.swift in Sources */,
 				A1000010001 /* HackRFWrapper.swift in Sources */,
 				A1000011001 /* HackRFError.swift in Sources */,
+				A1000014001 /* RingBuffer.swift in Sources */,
+				A1000015001 /* AudioSource.swift in Sources */,
+				A1000016001 /* FileAudioSource.swift in Sources */,
+				A1000017001 /* StreamingPipeline.swift in Sources */,
+				A1000018001 /* AudioInputDevice.swift in Sources */,
+				A1000019001 /* LiveAudioSource.swift in Sources */,
+				A1000020001 /* AudioSourceSelectionView.swift in Sources */,
+				A1000021001 /* AudioInputDevicePickerView.swift in Sources */,
+				A1000022001 /* AudioLevelMeterView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +387,7 @@
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "PirateRadio needs microphone access to capture live audio input for FM transmission.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -382,6 +419,7 @@
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "PirateRadio needs microphone access to capture live audio input for FM transmission.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

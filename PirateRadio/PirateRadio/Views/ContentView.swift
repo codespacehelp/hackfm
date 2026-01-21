@@ -15,8 +15,8 @@ struct ContentView: View {
             // Header
             headerView
 
-            // File selection
-            FileSelectionView(viewModel: viewModel)
+            // Audio source selection (file or live input)
+            AudioSourceSelectionView(viewModel: viewModel)
 
             // Frequency control
             FrequencyControlView(viewModel: viewModel)
@@ -35,6 +35,7 @@ struct ContentView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             viewModel.connectDevice()
+            viewModel.refreshInputDevices()
         }
     }
 
@@ -97,7 +98,7 @@ struct ContentView: View {
         switch viewModel.state {
         case .connected:
             return .green
-        case .transmitting:
+        case .transmitting, .streaming:
             return .red
         case .loading, .modulating, .connecting, .stopping:
             return .orange

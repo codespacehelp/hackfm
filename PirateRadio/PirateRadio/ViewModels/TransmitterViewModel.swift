@@ -16,6 +16,7 @@ enum TransmitterState: Equatable {
     case connected
     case loading
     case modulating
+    case streaming
     case transmitting
     case stopping
     case error(String)
@@ -32,6 +33,8 @@ enum TransmitterState: Equatable {
             return "Loading audio file..."
         case .modulating:
             return "Processing audio..."
+        case .streaming:
+            return "Streaming..."
         case .transmitting:
             return "Transmitting..."
         case .stopping:
@@ -48,12 +51,18 @@ enum TransmitterState: Equatable {
 
     var isBusy: Bool {
         switch self {
-        case .loading, .modulating, .transmitting, .stopping, .connecting:
+        case .loading, .modulating, .streaming, .transmitting, .stopping, .connecting:
             return true
         default:
             return false
         }
     }
+}
+
+/// Transmission mode selection
+enum TransmissionMode: Equatable {
+    case file
+    case liveInput
 }
 
 /// Main view model for the Pirate Radio transmitter
@@ -63,6 +72,9 @@ final class TransmitterViewModel: ObservableObject {
 
     /// Current state of the transmitter
     @Published var state: TransmitterState = .idle
+
+    /// Current transmission mode (file or live input)
+    @Published var transmissionMode: TransmissionMode = .file
 
     /// Selected audio file URL
     @Published var selectedFileURL: URL?
@@ -88,6 +100,18 @@ final class TransmitterViewModel: ObservableObject {
     /// Estimated memory usage for current audio
     @Published var estimatedMemory: String = ""
 
+    /// Available audio input devices
+    @Published var availableInputDevices: [AudioInputDevice] = []
+
+    /// Selected audio input device
+    @Published var selectedInputDevice: AudioInputDevice?
+
+    /// Current audio input level (0.0 - 1.0) for metering
+    @Published var audioInputLevel: Float = 0
+
+    /// Whether streaming mode is active (uses less memory)
+    @Published var useStreamingMode: Bool = true
+
     // MARK: - Private Properties
 
     private var hackRF: HackRFWrapper?
@@ -97,16 +121,38 @@ final class TransmitterViewModel: ObservableObject {
     private var processedAudio: ProcessedAudio?
     private var iqData: [Int8]?
 
+    // Streaming mode properties
+    private var streamingPipeline: StreamingPipeline?
+    private var currentAudioSource: AudioSource?
+
     // MARK: - Computed Properties
 
     /// Whether the Start button should be enabled
     var canStart: Bool {
-        state.isReady && selectedFileURL != nil && !state.isBusy
+        guard state.isReady && !state.isBusy else { return false }
+
+        switch transmissionMode {
+        case .file:
+            return selectedFileURL != nil
+        case .liveInput:
+            return selectedInputDevice != nil
+        }
     }
 
     /// Whether the Stop button should be enabled
     var canStop: Bool {
-        if case .transmitting = state { return true }
+        switch state {
+        case .transmitting, .streaming:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Whether we're in a streaming transmission (file streaming or live)
+    var isStreaming: Bool {
+        if case .streaming = state { return true }
+        if case .transmitting = state, transmissionMode == .liveInput { return true }
         return false
     }
 
@@ -153,6 +199,29 @@ final class TransmitterViewModel: ObservableObject {
         connectDevice()
     }
 
+    // MARK: - Audio Input Device Management
+
+    /// Refreshes the list of available audio input devices
+    func refreshInputDevices() {
+        do {
+            availableInputDevices = try AudioInputDeviceManager.shared.getInputDevices()
+
+            // Select default device if none selected
+            if selectedInputDevice == nil {
+                selectedInputDevice = availableInputDevices.first(where: { $0.isDefault })
+                    ?? availableInputDevices.first
+            }
+        } catch {
+            availableInputDevices = []
+            selectedInputDevice = nil
+        }
+    }
+
+    /// Selects an audio input device
+    func selectInputDevice(_ device: AudioInputDevice) {
+        selectedInputDevice = device
+    }
+
     // MARK: - File Selection
 
     /// Handles selection of an audio file
@@ -197,8 +266,73 @@ final class TransmitterViewModel: ObservableObject {
 
     // MARK: - Transmission Control
 
-    /// Starts the transmission process (load, modulate, transmit)
+    /// Starts the transmission process based on current mode
     func startTransmission() {
+        switch transmissionMode {
+        case .file:
+            if useStreamingMode {
+                startStreamingFileTransmission()
+            } else {
+                startPrecomputedFileTransmission()
+            }
+        case .liveInput:
+            startLiveTransmission()
+        }
+    }
+
+    /// Starts streaming file transmission (low memory usage)
+    private func startStreamingFileTransmission() {
+        guard let fileURL = selectedFileURL,
+              let hackRF = hackRF else {
+            return
+        }
+
+        Task {
+            do {
+                state = .loading
+                processingProgress = 0
+
+                // Create file audio source
+                let fileSource = FileAudioSource(url: fileURL)
+                currentAudioSource = fileSource
+
+                // Create streaming pipeline
+                let pipeline = StreamingPipeline(audioSource: fileSource)
+                streamingPipeline = pipeline
+
+                // Set up progress callback
+                pipeline.onProgress = { [weak self] progress in
+                    Task { @MainActor in
+                        self?.transmissionProgress = progress
+                    }
+                }
+
+                // Prepare the pipeline
+                try await pipeline.prepare()
+                processingProgress = 1.0
+
+                // Configure HackRF and start streaming transmission
+                try hackRF.configure(frequencyHz: frequencyHz)
+                state = .streaming
+                transmissionProgress = 0
+
+                try hackRF.startStreamingTransmission(pipeline: pipeline) { [weak self] progress in
+                    Task { @MainActor in
+                        self?.transmissionProgress = progress
+                        if progress >= 1.0 {
+                            self?.onTransmissionComplete()
+                        }
+                    }
+                }
+            } catch {
+                state = .error(error.localizedDescription)
+                cleanupStreaming()
+            }
+        }
+    }
+
+    /// Starts pre-computed file transmission (original method, higher memory usage)
+    private func startPrecomputedFileTransmission() {
         guard let fileURL = selectedFileURL,
               let hackRF = hackRF else {
             return
@@ -255,6 +389,48 @@ final class TransmitterViewModel: ObservableObject {
         }
     }
 
+    /// Starts live audio input transmission
+    private func startLiveTransmission() {
+        guard let device = selectedInputDevice,
+              let hackRF = hackRF else {
+            return
+        }
+
+        Task {
+            do {
+                state = .loading
+                processingProgress = 0
+
+                // Create live audio source
+                let liveSource = LiveAudioSource(device: device)
+                liveSource.delegate = self
+                currentAudioSource = liveSource
+
+                // Create streaming pipeline
+                let pipeline = StreamingPipeline(audioSource: liveSource)
+                streamingPipeline = pipeline
+
+                // Prepare the pipeline
+                try await pipeline.prepare()
+                processingProgress = 1.0
+
+                // Configure HackRF and start streaming transmission
+                try hackRF.configure(frequencyHz: frequencyHz)
+                state = .streaming
+                transmissionProgress = 0
+
+                try hackRF.startStreamingTransmission(pipeline: pipeline) { [weak self] progress in
+                    Task { @MainActor in
+                        self?.transmissionProgress = progress
+                    }
+                }
+            } catch {
+                state = .error(error.localizedDescription)
+                cleanupStreaming()
+            }
+        }
+    }
+
     /// Stops the current transmission
     func stopTransmission() {
         guard let hackRF = hackRF else { return }
@@ -264,8 +440,10 @@ final class TransmitterViewModel: ObservableObject {
         Task {
             do {
                 try hackRF.stopTransmission()
+                cleanupStreaming()
                 state = .connected
                 transmissionProgress = 0
+                audioInputLevel = 0
             } catch {
                 state = .error(error.localizedDescription)
             }
@@ -275,8 +453,39 @@ final class TransmitterViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func onTransmissionComplete() {
-        if case .transmitting = state {
+        switch state {
+        case .transmitting, .streaming:
+            cleanupStreaming()
             state = .connected
+        default:
+            break
+        }
+    }
+
+    private func cleanupStreaming() {
+        streamingPipeline?.stop()
+        streamingPipeline = nil
+        currentAudioSource?.stop()
+        currentAudioSource = nil
+    }
+}
+
+// MARK: - AudioSourceDelegate
+
+extension TransmitterViewModel: AudioSourceDelegate {
+    nonisolated func audioSource(_ source: AudioSource, didChangeState state: AudioSourceState) {
+        // Handle state changes if needed
+    }
+
+    nonisolated func audioSource(_ source: AudioSource, didUpdateLevel level: Float) {
+        Task { @MainActor in
+            self.audioInputLevel = level
+        }
+    }
+
+    nonisolated func audioSourceDidFinish(_ source: AudioSource) {
+        Task { @MainActor in
+            self.onTransmissionComplete()
         }
     }
 }

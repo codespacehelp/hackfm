@@ -22,9 +22,15 @@ final class HackRFWrapper {
 
     private var device: OpaquePointer?
     private var isTransmitting = false
+
+    // Pre-computed mode properties
     private var iqData: [Int8] = []
     private var iqDataIndex = 0
     private var progressCallback: TransmissionProgressCallback?
+
+    // Streaming mode properties
+    private var streamingPipeline: StreamingPipeline?
+    private var isStreamingMode = false
 
     // Singleton for callback access (C callbacks can't capture Swift context)
     // Must be fileprivate so the C callback function can access it
@@ -156,6 +162,43 @@ final class HackRFWrapper {
         isTransmitting = true
     }
 
+    /// Starts FM transmission in streaming mode from a pipeline
+    /// - Parameters:
+    ///   - pipeline: The streaming pipeline providing IQ data
+    ///   - onProgress: Callback for progress updates (0.0 to 1.0) for finite sources
+    func startStreamingTransmission(
+        pipeline: StreamingPipeline,
+        onProgress: @escaping TransmissionProgressCallback
+    ) throws {
+        guard let device = device else {
+            throw HackRFError.notOpen
+        }
+
+        guard !isTransmitting else {
+            throw HackRFError.transmissionInProgress
+        }
+
+        // Store pipeline for callback access
+        self.streamingPipeline = pipeline
+        self.isStreamingMode = true
+        self.progressCallback = onProgress
+        Self.activeInstance = self
+
+        // Start the pipeline producer
+        pipeline.start()
+
+        // Start transmission
+        let result = hackrf_start_tx(device, txCallback, nil)
+        guard result == HACKRF_SUCCESS.rawValue else {
+            Self.activeInstance = nil
+            streamingPipeline = nil
+            isStreamingMode = false
+            throw HackRFError.transmissionFailed(code: result)
+        }
+
+        isTransmitting = true
+    }
+
     /// Stops the current transmission
     func stopTransmission() throws {
         guard let device = device else {
@@ -166,6 +209,13 @@ final class HackRFWrapper {
             hackrf_stop_tx(device)
             isTransmitting = false
             Self.activeInstance = nil
+
+            // Clean up streaming mode
+            if isStreamingMode {
+                streamingPipeline?.stop()
+                streamingPipeline = nil
+                isStreamingMode = false
+            }
         }
     }
 
@@ -176,9 +226,18 @@ final class HackRFWrapper {
         let bufferLength = Int(transfer.pointee.valid_length)
         let buffer = transfer.pointee.buffer!
 
+        if isStreamingMode {
+            return fillBufferFromPipeline(buffer, length: bufferLength)
+        } else {
+            return fillBufferFromPrecomputed(buffer, length: bufferLength)
+        }
+    }
+
+    /// Fills buffer from pre-computed IQ data array
+    private func fillBufferFromPrecomputed(_ buffer: UnsafeMutablePointer<UInt8>, length: Int) -> Int32 {
         // Calculate how much data we can copy
         let remainingData = iqData.count - iqDataIndex
-        let bytesToCopy = min(bufferLength, remainingData)
+        let bytesToCopy = min(length, remainingData)
 
         if bytesToCopy > 0 {
             // Copy IQ data to buffer
@@ -188,8 +247,8 @@ final class HackRFWrapper {
             }
 
             // Zero-fill remainder if needed
-            if bytesToCopy < bufferLength {
-                memset(buffer.advanced(by: bytesToCopy), 0, bufferLength - bytesToCopy)
+            if bytesToCopy < length {
+                memset(buffer.advanced(by: bytesToCopy), 0, length - bytesToCopy)
             }
 
             iqDataIndex += bytesToCopy
@@ -201,7 +260,7 @@ final class HackRFWrapper {
             }
         } else {
             // No more data - fill with zeros and signal completion
-            memset(buffer, 0, bufferLength)
+            memset(buffer, 0, length)
 
             DispatchQueue.main.async { [weak self] in
                 self?.progressCallback?(1.0)
@@ -210,6 +269,41 @@ final class HackRFWrapper {
             // Return non-zero to stop transmission
             return -1
         }
+
+        return 0
+    }
+
+    /// Fills buffer from streaming pipeline
+    private func fillBufferFromPipeline(_ buffer: UnsafeMutablePointer<UInt8>, length: Int) -> Int32 {
+        guard let pipeline = streamingPipeline else {
+            memset(buffer, 0, length)
+            return -1
+        }
+
+        // Cast to Int8 pointer for the pipeline
+        let int8Buffer = buffer.withMemoryRebound(to: Int8.self, capacity: length) { $0 }
+
+        // Get data from pipeline (this may block briefly if buffer is low)
+        let bytesRead = pipeline.fillBuffer(int8Buffer, length: length)
+
+        if bytesRead == 0 {
+            // Check if pipeline is finished (for finite sources)
+            if pipeline.isFinished {
+                memset(buffer, 0, length)
+                DispatchQueue.main.async { [weak self] in
+                    self?.progressCallback?(1.0)
+                }
+                return -1
+            }
+
+            // Buffer underrun - fill with zeros and continue
+            memset(buffer, 0, length)
+        } else if bytesRead < length {
+            // Partial fill - zero the rest
+            memset(buffer.advanced(by: bytesRead), 0, length - bytesRead)
+        }
+
+        // Progress is reported by the pipeline via its callback
 
         return 0
     }
