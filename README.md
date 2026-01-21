@@ -1,14 +1,16 @@
 # Pirate Radio Station
 
-Using the HackRF to transmit audio files.
+Broadcast audio files over FM radio using a HackRF One on macOS.
 
-Simple app for macos that can transmit audio files (WAV, MP3, AIFF) over FM radio. The UI should be able to choose the exact frequency (between 88Mhz
-and 108Mhz, in steps of 0.01Mhz) as well as a start/stop button to start / stop the transmission. A progress indicator for where we are in the file would be nice. Make a plan first. Assume the
-hackrf driver is already installed (`brew install hackrf`)
+![Pirate Radio screenshot](.github/screenshot.png)
+
+Pirate Radio is a simple macOS app that lets you pick an audio file (WAV, MP3, AIFF), choose a broadcast frequency between 88.00 and 108.00 MHz, and start or stop transmission. A progress bar shows how much of the file has played.
 
 ## Requirements (macOS)
 
-Install [Homebrew](https://brew.sh/) if you haven't already.
+You’ll need a HackRF One device and the HackRF tools installed.
+
+Install [Homebrew](https://brew.sh/) if you haven’t already.
 
 Then install the HackRF tools:
 
@@ -17,3 +19,8 @@ brew install hackrf
 ```
 
 ## Building
+
+Open `PirateRadio/PirateRadio.xcodeproj` in Xcode and press Run.
+
+## Legal note
+FM transmission requires appropriate licensing in many regions. Use responsibly.
