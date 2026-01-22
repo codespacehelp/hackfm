@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/icon.png" width="80" alt="HackFM icon">
+  <img src=".github/icon.png" width="150" alt="HackFM icon">
 </p>
 
 <h1 align="center">HackFM</h1>
