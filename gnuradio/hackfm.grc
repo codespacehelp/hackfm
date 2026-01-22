@@ -1,0 +1,207 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: hackfm
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: HackFM
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: audio_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '48_000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 8.0]
+    rotation: 0
+    state: enabled
+- name: quad_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '480_000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [184, 8.0]
+    rotation: 0
+    state: enabled
+- name: rf_freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 102.2e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 8.0]
+    rotation: 0
+    state: enabled
+- name: rf_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '2_000_000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 8.0]
+    rotation: 0
+    state: enabled
+- name: transmit_status_label
+  id: variable_qtgui_label
+  parameters:
+    comment: ''
+    formatter: None
+    gui_hint: ''
+    label: Transmitting at
+    type: string
+    value: str(rf_freq/1e6) + " MHz"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [896, 384.0]
+    rotation: 0
+    state: enabled
+- name: analog_nbfm_tx_0
+  id: analog_nbfm_tx
+  parameters:
+    affinity: ''
+    alias: ''
+    audio_rate: quad_rate
+    comment: ''
+    fh: '-1.0'
+    max_dev: '75_000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quad_rate: quad_rate
+    tau: 75e-6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 152.0]
+    rotation: 0
+    state: enabled
+- name: blocks_wavfile_source_0
+  id: blocks_wavfile_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    file: audio/example_1mb.wav
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nchan: '1'
+    repeat: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 128.0]
+    rotation: 0
+    state: enabled
+- name: rational_resampler_xxx_0
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: audio_rate
+    fbw: '0'
+    interp: quad_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 160.0]
+    rotation: 0
+    state: enabled
+- name: rational_resampler_xxx_1
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: quad_rate
+    fbw: '0'
+    interp: rf_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: ccc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 176.0]
+    rotation: 0
+    state: enabled
+- name: soapy_hackrf_sink_0
+  id: soapy_hackrf_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: 'False'
+    bandwidth: '0'
+    center_freq: rf_freq
+    comment: ''
+    dev_args: ''
+    samp_rate: rf_rate
+    type: fc32
+    vga: '16'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 228.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_nbfm_tx_0, '0', rational_resampler_xxx_1, '0']
+- [blocks_wavfile_source_0, '0', rational_resampler_xxx_0, '0']
+- [rational_resampler_xxx_0, '0', analog_nbfm_tx_0, '0']
+- [rational_resampler_xxx_1, '0', soapy_hackrf_sink_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

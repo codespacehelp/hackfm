@@ -2,11 +2,11 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_PATH="$ROOT_DIR/PirateRadio/PirateRadio.xcodeproj"
-SCHEME="PirateRadio"
+PROJECT_PATH="$ROOT_DIR/hackfm/hackfm.xcodeproj"
+SCHEME="HackFM"
 BUILD_DIR="$ROOT_DIR/build"
 DIST_DIR="$ROOT_DIR/dist"
-ENTITLEMENTS_PATH="$ROOT_DIR/PirateRadio/PirateRadio/Supporting/PirateRadio.entitlements"
+ENTITLEMENTS_PATH="$ROOT_DIR/hackfm/hackfm/Supporting/HackFM.entitlements"
 
 echo "Building Release..."
 xcodebuild \
@@ -17,7 +17,7 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   build
 
-APP_PATH="$BUILD_DIR/Build/Products/Release/PirateRadio.app"
+APP_PATH="$BUILD_DIR/Build/Products/Release/HackFM.app"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Build output not found at $APP_PATH" >&2
   exit 1
@@ -39,7 +39,7 @@ if [[ -n "${NOTARIZE_APPLE_ID:-}" && -n "${NOTARIZE_TEAM_ID:-}" && -n "${NOTARIZ
 fi
 
 mkdir -p "$DIST_DIR"
-ZIP_PATH="$DIST_DIR/PirateRadio-Release.zip"
+ZIP_PATH="$DIST_DIR/HackFM-Release.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
 echo "Release artifact: $ZIP_PATH"
