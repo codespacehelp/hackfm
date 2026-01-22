@@ -27,3 +27,7 @@ Open `hackfm/hackfm.xcodeproj` in Xcode and press Run.
 ## Legal note
 
 FM transmission requires appropriate licensing in many regions. Use responsibly.
+
+## License
+
+This project is licensed under the [GNU General Public License v2.0](LICENSE).
